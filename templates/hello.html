@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.js"></script>
+    <script src="../static/js/webuploader.js"></script>
+    <link rel="stylesheet" type="text/css" href="../static/css/webuploader.css">
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-6">
+                <h3>上传地址：</h3>
+                <h4>{{ dir }}</h4>
+                <div id="picker" style="float:left;">请选择</div>
+                <div style="clear:both;"></div>
+                <button id="ctlBtn" class="btn btn-default">开始上传</button>
+                <div style="clear:both;"></div>
+                <div id="list"></div>
+            </div>
+            <div class="col-xs-6">
+                <h3>文件列表：</h3>
+                <ul>
+                    {% for file in files %}
+                    <li><a href="{{ url_for("download", filename=file) }}">{{ file }}</a></li>
+                    {% endfor %}
+                </ul>
+                <h3>文件列表：</h3>
+                <ul>
+                    {% for file in files %}
+                    <li><a href="{{ url_for("gzipfile", filename=file) }}">{{ file }}</a></li>
+                    {% endfor %}
+                </ul>
+                <h3>文件列表：</h3>
+                <ul>
+                    {% for file in files %}
+                    <li><a href="{{ url_for("download2", filename=file) }}">{{ file }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+        var task_id = WebUploader.Base.guid();
+        var uploader = WebUploader.create({
+            server: '{{ url_for("index") }}',
+            pick: {
+                id: "#picker",
+                multiple: true
+            },
+            prepareNextFile: true,
+            auto: false,
+            chunked: true,
+            chunkSize: 20 * 1024 * 1024,
+            chunkRetry: 3,
+            threads: 1,
+            compress: false,
+            resize: false,
+            duplicate: true,
+            formData: {
+                task_id: task_id
+            }
+        });
+        $("#ctlBtn").on('click', function() {
+            uploader.upload();
+        });
+        uploader.on( 'fileQueued', function( file ) {
+            $("#list").append( '<div id="' + file.id + '" class="item">' +
+                '<h4 class="info">' + file.name + '</h4>' +
+                '<p class="state">等待上传...</p>' +
+                '</div>' );
+        });
+        // 文件上传过程中创建进度条实时显示。
+        uploader.on( 'uploadProgress', function( file, percentage ) {
+            var $li = $( '#'+file.id ),
+                $percent = $li.find('.progress .progress-bar');
+            // 避免重复创建
+            if ( !$percent.length ) {
+                $percent = $('<div class="progress progress-striped active">' +
+                    '<div class="progress-bar" role="progressbar" style="width: 0%">' +
+                    '</div>' +
+                    '</div>').appendTo( $li ).find('.progress-bar');
+            }
+            $li.find('p.state').text('上传中');
+            $percent.css( 'width', percentage * 100 + '%' );
+        });
+        uploader.on('uploadSuccess', function(file) {
+            var data = {
+                'task_id': task_id,
+                'ext': file.source['ext'],
+                'type': file.source['type'],
+                'name': file.source['name']
+            };
+            $.get('{{ url_for("upload_success") }}', data);
+            $( '#'+file.id ).find('p.state').text('已上传');
+        });
+        uploader.on('uploadError', function(file) {
+            $( '#'+file.id ).find('p.state').text('上传出错');
+        });
+        uploader.on('uploadComplete', function(file) {
+            $( '#'+file.id ).find('.progress').fadeOut();
+        });
+    });
+    </script>
+</body>
+
+</html>
