@@ -5,13 +5,15 @@ import tarfile
 from flask import Flask, request, make_response, send_from_directory, render_template, stream_with_context, Response
 
 app = Flask(__name__)
-upload_dir = "/Users/athrun/Desktop/data/useruuid/upload/"
-temp_dir = "/Users/athrun/Desktop/temp/"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+upload_dir = BASE_DIR + "/flask_up/upload/"
+temp_dir = BASE_DIR + "/flask_up/temp/"
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 
 def get_files():
-    dirpath, dirnames, filenames = list(os.walk(temp_dir))[0]
+    print(upload_dir)
+    dirpath, dirnames, filenames = list(os.walk(upload_dir))[0]
     return filenames
 
 
@@ -76,6 +78,7 @@ def gzipfile(filename):  # 所有分片均上传完后被调用
 @app.route('/', methods=['GET', 'POST'])
 def index():  # 一个分片上传后被调用
     if request.method == 'POST':
+        print(request.form)
         upload_file = request.files['file']
         task = request.form.get('task_id')  # 获取文件唯一标识符
         chunk = request.form.get('chunk', 0)  # 获取该分片在所有分片中的序号
@@ -88,6 +91,7 @@ def index():  # 一个分片上传后被调用
 def upload_success(chunk=0):  # 所有分片均上传完后被调用
     task = request.args.get('task_id')
     name = request.args.get('name')
+    print(request.form)
     with open(upload_dir + '%s' % name, 'wb') as target_file:  # 创建新文件
         while True:
             try:

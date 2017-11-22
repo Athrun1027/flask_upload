@@ -24,21 +24,10 @@
             </div>
             <div class="col-xs-6">
                 <h3>文件列表：</h3>
+                <h4>{{ dir }}</h4>
                 <ul>
                     {% for file in files %}
                     <li><a href="{{ url_for("download", filename=file) }}">{{ file }}</a></li>
-                    {% endfor %}
-                </ul>
-                <h3>文件列表：</h3>
-                <ul>
-                    {% for file in files %}
-                    <li><a href="{{ url_for("gzipfile", filename=file) }}">{{ file }}</a></li>
-                    {% endfor %}
-                </ul>
-                <h3>文件列表：</h3>
-                <ul>
-                    {% for file in files %}
-                    <li><a href="{{ url_for("download2", filename=file) }}">{{ file }}</a></li>
                     {% endfor %}
                 </ul>
             </div>
